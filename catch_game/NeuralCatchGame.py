@@ -46,7 +46,7 @@ class CatchGame(object):
         self.PADDLE_VELOCITY = 20
         self.FONT_SIZE = 30
 #        self.MAX_TRIES_PER_GAME = 100
-        self.MAX_TRIES_PER_GAME = 1
+        self.MAX_TRIES_PER_GAME = 3
         self.CUSTOM_EVENT = pygame.USEREVENT + 1
         self.font = pygame.font.SysFont("Comic Sans MS", self.FONT_SIZE)
         
@@ -67,6 +67,11 @@ class CatchGame(object):
         self.clock = pygame.time.Clock()
     
     def step(self, action):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                return
+
         pygame.event.pump()
         
         if action == 0:   # move paddle left
@@ -83,12 +88,10 @@ class CatchGame(object):
             pass
 
         self.screen.fill(self.COLOR_BLACK)
-        score_text = self.font.render("Score: {:d}/{:d}, Ball: {:d}"
-            .format(self.game_score, self.MAX_TRIES_PER_GAME,
-                    self.num_tries), True, self.COLOR_WHITE)
-#        self.screen.blit(score_text, 
-#            ((self.GAME_WIDTH - score_text.get_width()) // 2,
-#             (self.GAME_FLOOR + self.FONT_SIZE // 2)))
+        score_text = self.font.render("Score: {:d}, Ball: {:d}".format(self.game_score, self.num_tries), True, self.COLOR_WHITE)
+        self.screen.blit(score_text, 
+            ((self.GAME_WIDTH - score_text.get_width()) // 2,
+                (self.GAME_FLOOR + self.FONT_SIZE // 2)))
                 
         # update ball position
         self.ball_y += self.BALL_VELOCITY
@@ -107,10 +110,10 @@ class CatchGame(object):
         if self.ball_y >= self.GAME_FLOOR - self.BALL_WIDTH // 2:
             if ball.colliderect(paddle):
                 self.reward += 1
+                self.game_score += 1
             else:
                 self.num_tries += 1
                 
-            self.game_score += self.reward
             self.ball_x = random.randint(100, self.GAME_WIDTH - 100 )
             self.ball_y = self.GAME_CEILING
             
@@ -121,7 +124,7 @@ class CatchGame(object):
         if self.num_tries >= self.MAX_TRIES_PER_GAME:
             self.game_over = True
             
-        self.clock.tick(100)
+        self.clock.tick(30)
         return frame, self.reward, self.game_over
         
 
@@ -135,10 +138,6 @@ class CatchGame(object):
 if __name__ == "__main__":   
     game = CatchGame()
     NAME = 'weuler'
-
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
     
     brain = NeuralNet.NeuralNet([], [], 2, 20, 1, saved_weight1=w1, saved_weight2=w2)
 
